@@ -86,22 +86,52 @@ export class ListaObras implements OnInit {
   //   return miId === obraId; 
   // }
 
+  // puedeEditar(obra: any): boolean {
+  //   // 1. LOG DE DEPURACIÓN (Solo para ver si está llegando el rol)
+  //    console.log('Soy Admin?', this.authService.esAdmin());
+
+  //   // 2. REGLA SUPREMA: Si es Admin, puede editar TODO.
+  //   if (this.authService.esAdmin()) {
+  //       return true; 
+  //   }
+
+  //   // 3. REGLA DE PROPIEDAD: Si no es Admin, revisamos si es el dueño
+  //   if (!this.usuarioLogueado || !this.usuarioLogueado.localAccountId) {
+  //       return false;
+  //   }
+
+  //   const miId = this.usuarioLogueado.localAccountId.toLowerCase();
+  //   const obraId = obra.id_azure ? obra.id_azure.toLowerCase() : null;
+
+  //   if (!obraId) return false;
+
+  //   return miId === obraId;
+  // }
+
   puedeEditar(obra: any): boolean {
-    // 1. LOG DE DEPURACIÓN (Solo para ver si está llegando el rol)
-     console.log('Soy Admin?', this.authService.esAdmin());
+    // 1. Si es Admin, tiene superpoderes
+    if (this.authService.esAdmin()) return true;
 
-    // 2. REGLA SUPREMA: Si es Admin, puede editar TODO.
-    if (this.authService.esAdmin()) {
-        return true; 
-    }
-
-    // 3. REGLA DE PROPIEDAD: Si no es Admin, revisamos si es el dueño
-    if (!this.usuarioLogueado || !this.usuarioLogueado.localAccountId) {
-        return false;
-    }
+    // 2. Si no hay usuario logueado, nadie edita
+    if (!this.usuarioLogueado || !this.usuarioLogueado.localAccountId) return false;
 
     const miId = this.usuarioLogueado.localAccountId.toLowerCase();
-    const obraId = obra.id_azure ? obra.id_azure.toLowerCase() : null;
+
+    // 3. BUSQUEDA ROBUSTA DEL ID DEL DUEÑO
+    // Intentamos encontrar el ID en todas las variantes posibles que mandan los backends Java
+    const rawId = obra.id_azure || obra.idAzure || obra.usuario?.id_azure || obra.usuario?.idAzure;
+    
+    const obraId = rawId ? rawId.toLowerCase() : null;
+
+    // --- DEBUG: MIRA ESTO EN LA CONSOLA (F12) ---
+    // Solo mostramos log si encontramos un ID para no llenar la consola de basura
+    if (obraId) {
+        // console.log(`🔍 Obra: ${obra.titulo} | Dueño: ${obraId} | Yo: ${miId} | ¿Es mía? ${miId === obraId}`);
+    } else {
+        // Si sale esto, el Backend NO está enviando el ID
+        console.warn(`⚠️ La obra "${obra.titulo}" NO TIENE id_azure. Revisa el SQL en Java.`);
+    }
+    // ---------------------------------------------
 
     if (!obraId) return false;
 
