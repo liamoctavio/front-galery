@@ -35,7 +35,8 @@ export class ListaObras implements OnInit {
   obraEditando: any = {}; // ID de la obra que se está editando
   guardandoCambios = false;
 
-
+  // NUEVO: Variable para el Lightbox
+  obraSeleccionada: any = null;
   private authService = inject(Authservices); // servicio de auth login
 
   usuarioLogueado: any = null;
@@ -47,66 +48,6 @@ export class ListaObras implements OnInit {
 
     this.cargarObras();
   }
-//FUNCIONA PERFECT
-  // puedeEditar(obra: any): boolean {
-  //   // REGLA 1: Debe estar logueado
-  //   if (!this.usuarioLogueado) return false;
-
-  //   // REGLA 2 (OPCIONAL): ¿Es mi foto? 
-  //   // Comparamos el email de Azure con el username de la base de datos
-  //   // Ojo: Asegúrate que tu DB guarde el email completo o ajusta esta lógica.
-  //   // return this.usuarioLogueado.username === obra.username;
-    
-  //   // POR AHORA: Si está logueado, puede editar todo (Modo simple)
-  //   return true; 
-  // }
-
-  // puedeEditar(obra: any): boolean {
-  //   // 1. Si no hay nadie logueado, nadie edita.
-  //   if (!this.usuarioLogueado || !this.usuarioLogueado.localAccountId) {
-  //       return false;
-  //   }
-  //   // 2. ¿Soy Admin? (Opcional, pero recomendado)
-  //   // Si tienes implementado el método esAdmin() en tu servicio, úsalo:
-  //   // if (this.authService.esAdmin()) {
-  //   //     return true; 
-  //   // }
-
-  //   // 3. COMPARACIÓN DE DUEÑO
-  //   // Mi ID (del login)
-  //   const miId = this.usuarioLogueado.localAccountId.toLowerCase();
-    
-  //   // El ID de la obra (que ahora viene del Backend gracias al paso 1)
-  //   const obraId = obra.id_azure ? obra.id_azure.toLowerCase() : null;
-
-  //   // Si la obra no tiene dueño (es vieja), nadie la edita (salvo admin)
-  //   if (!obraId) return false;
-
-  //   // ¿Son iguales?
-  //   return miId === obraId; 
-  // }
-
-  // puedeEditar(obra: any): boolean {
-  //   // 1. LOG DE DEPURACIÓN (Solo para ver si está llegando el rol)
-  //    console.log('Soy Admin?', this.authService.esAdmin());
-
-  //   // 2. REGLA SUPREMA: Si es Admin, puede editar TODO.
-  //   if (this.authService.esAdmin()) {
-  //       return true; 
-  //   }
-
-  //   // 3. REGLA DE PROPIEDAD: Si no es Admin, revisamos si es el dueño
-  //   if (!this.usuarioLogueado || !this.usuarioLogueado.localAccountId) {
-  //       return false;
-  //   }
-
-  //   const miId = this.usuarioLogueado.localAccountId.toLowerCase();
-  //   const obraId = obra.id_azure ? obra.id_azure.toLowerCase() : null;
-
-  //   if (!obraId) return false;
-
-  //   return miId === obraId;
-  // }
 
   puedeEditar(obra: any): boolean {
     // 1. Si es Admin, tiene superpoderes
@@ -122,16 +63,6 @@ export class ListaObras implements OnInit {
     const rawId = obra.id_azure || obra.idAzure || obra.usuario?.id_azure || obra.usuario?.idAzure;
     
     const obraId = rawId ? rawId.toLowerCase() : null;
-
-    // --- DEBUG: MIRA ESTO EN LA CONSOLA (F12) ---
-    // Solo mostramos log si encontramos un ID para no llenar la consola de basura
-    if (obraId) {
-        // console.log(`🔍 Obra: ${obra.titulo} | Dueño: ${obraId} | Yo: ${miId} | ¿Es mía? ${miId === obraId}`);
-    } else {
-        // Si sale esto, el Backend NO está enviando el ID
-        console.warn(`⚠️ La obra "${obra.titulo}" NO TIENE id_azure. Revisa el SQL en Java.`);
-    }
-    // ---------------------------------------------
 
     if (!obraId) return false;
 
@@ -275,6 +206,15 @@ export class ListaObras implements OnInit {
           alert('Error al guardar cambios');
         }
       });
+  }
+
+  // --- LÓGICA DEL LIGHTBOX (VISUALIZADOR) ---
+  abrirVisualizador(obra: any) {
+    this.obraSeleccionada = obra;
+  }
+
+  cerrarVisualizador() {
+    this.obraSeleccionada = null;
   }
 
 

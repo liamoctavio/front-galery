@@ -26,21 +26,6 @@ export class Eventos {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/eventos`; // http://localhost:8080/bff/eventos
 
-  // --- MÉTODO AUXILIAR PARA OBTENER HEADERS Y DEPURAR ---
-  // private getHeaders() {
-  //   const token = localStorage.getItem('token'); // Asegúrate que 'token' es la clave correcta en tu localStorage
-
-  //   // TU CÓDIGO DE DEPURACIÓN
-  //   console.log("---- DEBUG TOKEN (Desde Servicio Eventos) ----");
-  //   console.log("Valor del token en Storage:", token);
-  //   const authHeader = `Bearer ${token}`;
-  //   console.log("Header que se enviará:", authHeader);
-
-  //   return new HttpHeaders({
-  //     'Authorization': authHeader
-  //   });
-  // }
-
   private getHeaders(): HttpHeaders {
   const token = localStorage.getItem('token'); // O la clave que uses
   if (!token) {
@@ -59,20 +44,39 @@ export class Eventos {
 
 
   crearEvento(evento: any) {
-    return this.http.post(this.apiUrl, evento);
+    return this.http.post(this.apiUrl, evento, { headers: this.getHeaders() });
   }
 
   // Editar
+  // editarEvento(id: number, evento: any) {
+  //   return this.http.put(`${this.apiUrl}/${id}`, evento);
+  // }
   editarEvento(id: number, evento: any) {
-    return this.http.put(`${this.apiUrl}/${id}`, evento);
+      return this.http.put(`${this.apiUrl}/${id}`, evento, { headers: this.getHeaders() });
   }
 
   // Eliminar
-  // eliminarEvento(id: number) {
-  //   return this.http.delete(`${this.apiUrl}/${id}`);
+
+  // eliminarEvento(id: number, idAzure: string) { // <--- Agregamos idAzure
+  //   return this.http.delete(`${this.apiUrl}/eventos/${id}?id_azure=${idAzure}`);
   // }
-  eliminarEvento(id: number, idAzure: string) { // <--- Agregamos idAzure
-    return this.http.delete(`${this.apiUrl}/eventos/${id}?id_azure=${idAzure}`);
+  // eliminarEvento(id: number, idAzure: string) {
+  //   // 1. Agregamos el query param ?id_azure=...
+  //   // 2. Agregamos los headers con el Token
+  //   return this.http.delete(`${this.apiUrl}/${id}?id_azure=${idAzure}`, { 
+  //       headers: this.getHeaders() 
+  //   });
+  // }
+  eliminarEvento(id: number, idAzure: string) {
+    // ⚠️ ERROR COMÚN: No uses comillas simples ' '
+    // ✅ CORRECTO: Usa comillas invertidas ` ` para que funcionen las variables ${...}
+    console.log('>>> Servicio borrando ID:', id, ' usuario:', idAzure);
+    // La URL debe quedar así: http://.../bff/eventos/15?id_azure=e5e7...
+    const url = `${this.apiUrl}/${id}?id_azure=${idAzure}`;
+    console.log('>>> URL Generada:', url);
+    return this.http.delete(url, { 
+        headers: this.getHeaders() // No olvides los headers del token
+    });
   }
 
   

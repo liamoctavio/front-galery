@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Obras } from '../../services/obras';
 import { Authservices } from '../../../auth/services/authservices';
 
 @Component({
   selector: 'app-gestion-obras',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './gestion-obras.html',
   styleUrl: './gestion-obras.scss',
 })
@@ -19,8 +19,10 @@ export class GestionObras {
   private authService = inject(Authservices); // servicio de auth login
 
   loading = false;
-  previewUrl: string | null = null;
+  previewUrl: string | null | ArrayBuffer = null;
   mensajeError: string = '';
+
+  isDragging = false;
 
   nuevaObra = {
     titulo: '',
@@ -125,7 +127,7 @@ export class GestionObras {
         alert('¡Obra subida con éxito y vinculada a tu usuario!');
         this.loading = false;
         // Navegar a lista de obras
-        this.router.navigate(['/lista-obras']); 
+        this.router.navigate(['/obras']); 
       },
       error: (err) => {
         console.error(err);
@@ -134,6 +136,60 @@ export class GestionObras {
       }
     });
   }
+
+  // Manejo del frontend
+
+
+// 2. Manejo de Drag & Drop
+onDragOver(event: DragEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+  this.isDragging = true;
+}
+
+onDragLeave(event: DragEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+  this.isDragging = false;
+}
+
+onDrop(event: DragEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+  this.isDragging = false;
+  
+  if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+    const file = event.dataTransfer.files[0];
+    this.procesarArchivo(file);
+  }
+}
+
+// 3. Procesamiento común (Validación y Preview)
+procesarArchivo(file: File) {
+  if (!file) return;
+
+  // Validación básica de tipo imagen
+  if (!file.type.match(/image.*/)) {
+    this.mensajeError = 'Solo se permiten archivos de imagen (JPG, PNG)';
+    return;
+  }
+  
+  this.mensajeError = ''; // Limpiar errores
+
+  // Generar preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    this.previewUrl = e.target?.result || null;
+    // Aquí también podrías guardar el file en una variable para enviarlo al backend luego
+    // this.archivoSeleccionado = file; 
+  };
+  reader.readAsDataURL(file);
+}
+
+removerImagen() {
+  this.previewUrl = null;
+  // this.archivoSeleccionado = null;
+}
 
 
 }

@@ -16,6 +16,7 @@ export class Calendario implements OnInit {
 
   private eventosService = inject(Eventos); // servicio de eventos
   private authService = inject(Authservices); // servicio de auth login
+  usuarioLogueado: boolean = false;
 
   eventos: any[] = [];
   cargando = true;
@@ -25,6 +26,7 @@ export class Calendario implements OnInit {
   guardando = false;
 
   ngOnInit() {
+    this.usuarioLogueado = this.authService.isLoggedIn();
     this.cargarEventos();
   }
 
