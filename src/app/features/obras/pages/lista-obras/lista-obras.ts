@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
 import { Obras } from '../../services/obras';
@@ -41,6 +41,8 @@ export class ListaObras implements OnInit {
 
   usuarioLogueado: any = null;
 
+  private cd = inject(ChangeDetectorRef)
+
   ngOnInit() {
 
     this.usuarioLogueado = this.authService.getUser();
@@ -75,7 +77,7 @@ export class ListaObras implements OnInit {
       next: (datos) => {
         this.listaObras = datos;
         this.cargandoLista = false;
-        
+        this.cd.detectChanges();
         // TRUCO: Apenas llega la lista, salimos a buscar las fotos una por una
         this.cargarImagenesFaltantes();
       },
@@ -83,6 +85,7 @@ export class ListaObras implements OnInit {
         console.error(err);
         this.errorCarga = 'Error cargando la lista.';
         this.cargandoLista = false;
+        this.cd.detectChanges();
       }
     });
   }
@@ -97,6 +100,7 @@ export class ListaObras implements OnInit {
           if (obraConFoto.imagenBase64) {
             // Le agregamos la propiedad 'imagen' para que el HTML la detecte
             this.listaObras[index].imagenBase64 = obraConFoto.imagenBase64;
+            this.cd.detectChanges();
           }
         },
         error: (err) => console.error(`Error cargando foto ${obra.id_obra}`, err)
